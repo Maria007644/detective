@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detective Senses — Grammar Speaking Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #f5edd6;
+    --aged: #e8d5aa;
+    --red: #c0392b;
+    --gold: #b8860b;
+    --stamp: #8B3A3A;
+    --shadow: rgba(26,18,8,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #2c2416;
+    font-family: 'Courier Prime', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-image: 
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.01) 40px, rgba(255,255,255,0.01) 80px);
+  }
+
+  .case-folder {
+    background: var(--paper);
+    max-width: 780px;
+    width: 100%;
+    border-radius: 2px;
+    box-shadow: 0 8px 60px rgba(0,0,0,0.7), inset 0 0 80px rgba(184,134,11,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .case-folder::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 18px 30px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 4px solid var(--gold);
+  }
+
+  .badge {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 8px rgba(184,134,11,0.6));
+  }
+
+  .header-text h1 {
+    font-family: 'Special Elite', cursive;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .header-text p {
+    font-size: 0.72rem;
+    color: #aaa;
+    letter-spacing: 2px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  .case-number {
+    margin-left: auto;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.75rem;
+    color: var(--gold);
+    text-align: right;
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    background: var(--aged);
+    padding: 10px 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #d4c49a;
+  }
+
+  .clue-dots {
+    display: flex; gap: 6px;
+  }
+
+  .dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: transparent;
+    transition: background 0.4s;
+  }
+
+  .dot.solved { background: var(--gold); }
+  .dot.active { background: var(--red); border-color: var(--red); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  .progress-label {
+    font-size: 0.72rem;
+    color: var(--ink);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-left: auto;
+    opacity: 0.7;
+  }
+
+  /* MAIN SCENE */
+  .scene-area {
+    padding: 24px 30px 16px;
+  }
+
+  .crime-scene {
+    background: var(--ink);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    position: relative;
+    border: 2px solid #3a2e1a;
+  }
+
+  .scene-visual {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scene-visual::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
+  }
+
+  .scene-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    opacity: 0.12;
+    gap: 20px;
+    padding: 10px;
+  }
+
+  .main-emoji {
+    position: relative;
+    z-index: 2;
+    animation: floatIn 0.5s ease-out;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+  }
+
+  @keyframes floatIn {
+    from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+    to { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .scene-tape {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 30px, var(--ink) 30px, var(--ink) 60px);
+    height: 22px;
+    display: flex; align-items: center;
+    padding: 0 12px;
+  }
+
+  .tape-text {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: var(--ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: scroll 12s linear infinite;
+  }
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* CLUE CARD */
+  .clue-card {
+    background: var(--aged);
+    border: 1px dashed #b8a070;
+    border-radius: 2px;
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .clue-card::before {
+    content: '🔍';
+    position: absolute;
+    top: -10px; left: 14px;
+    font-size: 1.1rem;
+  }
+
+  .clue-label {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.68rem;
+    color: var(--stamp);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .clue-text {
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .clue-text strong {
+    color: var(--red);
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  /* GRAMMAR HINT */
+  .grammar-hint {
+    background: #1a1208;
+    color: var(--paper);
+    border-radius: 2px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-left: 3px solid var(--gold);
+  }
+
+  .hint-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .hint-content {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #d4c49a;
+  }
+
+  .hint-content .structure {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* ANSWER OPTIONS */
+  .speak-prompt {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.78rem;
+    color: var(--stamp);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .option-btn {
+    background: var(--paper);
+    border: 2px solid #c4a96a;
+    border-radius: 2px;
+    padding: 10px 14px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.88rem;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    line-height: 1.4;
+    position: relative;
+  }
+
+  .option-btn:hover {
+    background: var(--aged);
+    border-color: var(--gold);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+
+  .option-btn.correct {
+    background: #2d4a1e;
+    border-color: #6abf43;
+    color: #c8f0a0;
+  }
+
+  .option-btn.wrong {
+    background: #4a1e1e;
+    border-color: var(--red);
+    color: #f0a0a0;
+  }
+
+  .option-btn.disabled { pointer-events: none; opacity: 0.5; }
+
+  .option-letter {
+    font-family: 'Special Elite', cursive;
+    color: var(--gold);
+    margin-right: 6px;
+    font-size: 0.9rem;
+  }
+
+  /* FEEDBACK */
+  .feedback {
+    display: none;
+    padding: 12px 18px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(-10px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .feedback.show { display: block; }
+  .feedback.success { background: #1e3a12; color: #b0e890; border-color: #6abf43; }
+  .feedback.error { background: #3a1212; color: #f0b0b0; border-color: var(--red); }
+
+  .feedback-title {
+    font-family: 'Special Elite', cursive;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+  }
+
+  /* NEXT BUTTON */
+  .btn-next {
+    background: var(--ink);
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    padding: 11px 28px;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    display: none;
+    transition: all 0.2s;
+  }
+
+  .btn-next:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
+  .btn-next.show { display: inline-flex; align-items: center; gap: 8px; }
+
+  /* FINAL SCREEN */
+  .final-screen {
+    display: none;
+    padding: 30px 30px 40px;
+    text-align: center;
+  }
+
+  .final-screen.show { display: block; }
+
+  .final-medal {
+    font-size: 5rem;
+    margin-bottom: 10px;
+    animation: medalDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: block;
+  }
+
+  @keyframes medalDrop {
+    from { transform: scale(0) rotate(-20deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+  }
+
+  .congrats-box {
+    background: var(--ink);
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+
+  .congrats-main {
+    font-family: 'Special Elite', cursive;
+    font-size: 1.5rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .congrats-sub {
+    font-size: 1rem;
+    color: var(--paper);
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+
+  .score-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'Special Elite', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    padding: 6px 20px;
+    border-radius: 2px;
+  }
+
+  .verdict-stamp {
+    font-family: 'Special Elite', cursive;
+    font-size: 2.5rem;
+    color: var(--red);
+    border: 4px solid var(--red);
+    display: inline-block;
+    padding: 8px 24px;
+    transform: rotate(-4deg);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    box-shadow: 4px 4px 0 rgba(192,57,43,0.3);
+  }
+
+  .final-summary {
+    background: var(--aged);
+    border: 1px dashed #b8a070;
+    padding: 20px;
+    border-radius: 2px;
+    text-align: left;
+    margin: 16px 0;
+  }
+
+  .summary-title {
+    font-family: 'Special Elite', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--stamp);
+    margin-bottom: 12px;
+  }
+
+  .summary-item {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px dotted #c4a96a;
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .summary-item:last-child { border-bottom: none; }
+  .summary-sense { font-size: 1.1rem; flex-shrink: 0; }
+  .summary-sentence { font-style: italic; }
+  .summary-sentence strong { color: var(--red); font-style: normal; }
+
+  .restart-btn {
+    background: var(--ink);
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    padding: 14px 36px;
+    font-family: 'Special Elite', cursive;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-top: 16px;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+
+  .restart-btn:hover { background: var(--gold); color: var(--ink); }
+
+  /* SCORE */
+  .score-area {
+    text-align: right;
+    padding: 0 30px 16px;
+    font-size: 0.75rem;
+    color: var(--stamp);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Special Elite', cursive;
+  }
+
+  /* TEACHER NOTE */
+  .teacher-note {
+    background: #fffbe8;
+    border-top: 2px solid #d4c49a;
+    padding: 12px 30px;
+    font-size: 0.75rem;
+    color: #6b5a2e;
+    line-height: 1.5;
+  }
+
+  .teacher-note strong { color: var(--stamp); }
+
+  @media (max-width: 520px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .scene-visual { height: 140px; font-size: 3.5rem; }
+    .header-text h1 { font-size: 1.1rem; }
+    .scene-area { padding: 16px 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="case-folder">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">🕵️</div>
+    <div class="header-text">
+      <h1>Detective Senses</h1>
+      <p>Grammar Speaking Game · Sensory Descriptions</p>
+    </div>
+    <div class="case-number">CASE #<br>4.07 · 10 CLUES</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="clue-dots" id="dots"></div>
+    <div class="progress-label" id="progress-label">Clue 1 of 5</div>
+  </div>
+
+  <!-- MAIN GAME -->
+  <div id="game-area">
+    <div class="scene-area">
+
+      <!-- SCENE VISUAL -->
+      <div class="crime-scene">
+        <div class="scene-visual">
+          <div class="scene-bg" id="scene-bg"></div>
+          <div class="main-emoji" id="main-emoji">🏚️</div>
+        </div>
+        <div class="scene-tape">
+          <div class="tape-text">⚠ CRIME SCENE — DO NOT CROSS &nbsp;&nbsp;&nbsp; ⚠ CRIME SCENE — DO NOT CROSS &nbsp;&nbsp;&nbsp; ⚠ CRIME SCENE — DO NOT CROSS &nbsp;&nbsp;&nbsp; ⚠ CRIME SCENE — DO NOT CROSS &nbsp;&nbsp;&nbsp;</div>
+        </div>
+      </div>
+
+      <!-- CLUE CARD -->
+      <div class="clue-card">
+        <div class="clue-label">Clue found at scene</div>
+        <div class="clue-text" id="clue-text"></div>
+      </div>
+
+      <!-- GRAMMAR HINT -->
+      <div class="grammar-hint">
+        <div class="hint-icon">📋</div>
+        <div class="hint-content" id="hint-content"></div>
+      </div>
+
+      <!-- SPEAKING PROMPT -->
+      <div class="speak-prompt">🎤 Choose & speak the full sentence:</div>
+
+      <div class="options-grid" id="options-grid"></div>
+
+      <!-- FEEDBACK -->
+      <div class="feedback" id="feedback">
+        <div class="feedback-title" id="feedback-title"></div>
+        <div id="feedback-body"></div>
+      </div>
+
+      <!-- NEXT BUTTON -->
+      <button class="btn-next" id="btn-next" onclick="nextClue()">
+        Next Clue →
+      </button>
+    </div>
+
+    <div class="score-area" id="score-area">Score: 0 / 0</div>
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="final-screen" id="final-screen">
+
+    <div class="final-medal" id="final-medal">🏅</div>
+    <div class="verdict-stamp" id="verdict-stamp">Case Closed!</div>
+
+    <div class="congrats-box">
+      <p class="congrats-main" id="final-title">Congratulations!</p>
+      <p class="congrats-sub" id="final-subtitle">You finished the quest!</p>
+      <div class="score-badge" id="final-score-text"></div>
+    </div>
+
+    <div class="final-summary">
+      <div class="summary-title">🗂 Your sentences — say them one more time!</div>
+      <div id="summary-list"></div>
+    </div>
+
+    <button class="restart-btn" onclick="restart()">🔄 Play Again</button>
+  </div>
+
+  <!-- TEACHER NOTE -->
+  <div class="teacher-note" id="teacher-note">
+    <strong>🎤 How to play:</strong> Read the clue. Choose the correct sentence — then <em>say it out loud!</em> &nbsp;|&nbsp; <strong>Grammar:</strong> It <em>tasted / smelt / felt / sounded / looked</em> <strong>like</strong> + a noun. &nbsp;|&nbsp; 10 clues to solve!
+  </div>
+</div>
+
+<script>
+const clues = [
+  {
+    emoji: '🚪',
+    bgEmojis: ['🏠','🌙','🕸️','🪟','🌿'],
+    scene: 'You arrive at an old house. You open the front door...',
+    clueText: 'The detective opened the door. There was a strange smell inside. It was sweet — like old flowers.',
+    senseUsed: 'smelt like',
+    hintStructure: 'It <span class="structure">smelt like</span> _____',
+    hintNote: 'smelt like + a noun (a thing)',
+    options: [
+      { text: 'It smelt like old flowers.', correct: true },
+      { text: 'It was smelling like flowers.', correct: false },
+      { text: 'It smelt very flowers.', correct: false },
+      { text: 'It smelt as old flowers.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Great! <em>"It smelt like old flowers."</em> — smelt like + noun. Well done!',
+      wrong: 'Use: <em>It smelt like + a noun.</em> We don\'t say "smelt as" or "was smelling like".',
+    },
+    summary: { icon: '👃', text: '"It <strong>smelt like</strong> old flowers."' }
+  },
+  {
+    emoji: '🪑',
+    bgEmojis: ['🛋️','📦','🕯️','🔦','🚪'],
+    scene: 'In the living room. There is an old chair in the corner.',
+    clueText: 'The detective sat down on the chair. It was very soft and warm — like a big cloud.',
+    senseUsed: 'felt like',
+    hintStructure: 'It <span class="structure">felt like</span> _____',
+    hintNote: 'felt like + a noun (a thing)',
+    options: [
+      { text: 'It felt like a big cloud.', correct: true },
+      { text: 'It was feeling like cloud.', correct: false },
+      { text: 'It felt very soft cloud.', correct: false },
+      { text: 'It felt as a big cloud.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Perfect! <em>"It felt like a big cloud."</em> — felt like + noun phrase!',
+      wrong: 'Use: <em>It felt like + a noun.</em> We don\'t say "felt as" or "was feeling like".',
+    },
+    summary: { icon: '✋', text: '"It <strong>felt like</strong> a big cloud."' }
+  },
+  {
+    emoji: '🍵',
+    bgEmojis: ['🧂','🥄','☕','🍃','🫙'],
+    scene: 'The kitchen. There is a cup on the table.',
+    clueText: 'The detective tasted the drink in the cup. It was fresh and a little bitter — like green tea.',
+    senseUsed: 'tasted like',
+    hintStructure: 'It <span class="structure">tasted like</span> _____',
+    hintNote: 'tasted like + a noun (a food or drink)',
+    options: [
+      { text: 'It tasted like green tea.', correct: true },
+      { text: 'It was tasting like tea.', correct: false },
+      { text: 'It tasted as green tea.', correct: false },
+      { text: 'It tasted very bitter tea.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Yes! <em>"It tasted like green tea."</em> — tasted like + noun. Great job!',
+      wrong: 'Use: <em>It tasted like + a noun.</em> We don\'t say "tasted as" or "was tasting like".',
+    },
+    summary: { icon: '👅', text: '"It <strong>tasted like</strong> green tea."' }
+  },
+  {
+    emoji: '🔔',
+    bgEmojis: ['🎵','🔊','🎶','📻','🚪'],
+    scene: 'Upstairs. There is a sound behind the closed door.',
+    clueText: 'The detective stopped and listened. It was a loud, low sound — like a big bell.',
+    senseUsed: 'sounded like',
+    hintStructure: 'It <span class="structure">sounded like</span> _____',
+    hintNote: 'sounded like + a noun (a thing or animal)',
+    options: [
+      { text: 'It sounded like a big bell.', correct: true },
+      { text: 'It was sounding like bell.', correct: false },
+      { text: 'It sounded as a big bell.', correct: false },
+      { text: 'It sounded very loud bell.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Excellent! <em>"It sounded like a big bell."</em> — sounded like + noun phrase!',
+      wrong: 'Use: <em>It sounded like + a noun.</em> We don\'t say "sounded as" or "was sounding like".',
+    },
+    summary: { icon: '👂', text: '"It <strong>sounded like</strong> a big bell."' }
+  },
+  {
+    emoji: '📦',
+    bgEmojis: ['🗝️','🎁','🪢','🖼️','🕯️'],
+    scene: 'A small room. There is a box on the floor.',
+    clueText: 'The detective looked at the box. It was brown and square — like a large chocolate box.',
+    senseUsed: 'looked like',
+    hintStructure: 'It <span class="structure">looked like</span> _____',
+    hintNote: 'looked like + a noun (a thing)',
+    options: [
+      { text: 'It looked like a large chocolate box.', correct: true },
+      { text: 'It was looking like box.', correct: false },
+      { text: 'It looked as a chocolate box.', correct: false },
+      { text: 'It looked very brown box.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Spot on! <em>"It looked like a large chocolate box."</em> — looked like + noun phrase!',
+      wrong: 'Use: <em>It looked like + a noun.</em> We don\'t say "looked as" or "was looking like".',
+    },
+    summary: { icon: '👀', text: '"It <strong>looked like</strong> a large chocolate box."' }
+  },
+  {
+    emoji: '🧥',
+    bgEmojis: ['👗','🪞','🚪','🧣','👟'],
+    scene: 'The bedroom. There is an old coat on the bed.',
+    clueText: 'The detective picked up the coat. It was very heavy and stiff — like dry cardboard.',
+    senseUsed: 'felt like',
+    hintStructure: 'It <span class="structure">felt like</span> _____',
+    hintNote: 'felt like + a noun (a material or object)',
+    options: [
+      { text: 'It felt like dry cardboard.', correct: true },
+      { text: 'It felt as dry cardboard.', correct: false },
+      { text: 'It was feeling like cardboard.', correct: false },
+      { text: 'It felt very stiff cardboard.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Great! <em>"It felt like dry cardboard."</em> — felt like + noun. Nice work!',
+      wrong: 'Use: <em>It felt like + a noun.</em> We don\'t say "felt as" or "was feeling like".',
+    },
+    summary: { icon: '✋', text: '"It <strong>felt like</strong> dry cardboard."' }
+  },
+  {
+    emoji: '🍞',
+    bgEmojis: ['🥗','🧀','🍳','🍴','🫙'],
+    scene: 'Back in the kitchen. There is food on the table.',
+    clueText: 'The detective tried the bread. It was sour and salty — like old cheese.',
+    senseUsed: 'tasted like',
+    hintStructure: 'It <span class="structure">tasted like</span> _____',
+    hintNote: 'tasted like + a food noun',
+    options: [
+      { text: 'It tasted like old cheese.', correct: true },
+      { text: 'It tasted as old cheese.', correct: false },
+      { text: 'It was tasting like cheese.', correct: false },
+      { text: 'It tasted very sour cheese.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Yes! <em>"It tasted like old cheese."</em> — tasted like + noun. Perfect!',
+      wrong: 'Use: <em>It tasted like + a noun.</em> We don\'t say "tasted as" or "was tasting like".',
+    },
+    summary: { icon: '👅', text: '"It <strong>tasted like</strong> old cheese."' }
+  },
+  {
+    emoji: '🌧️',
+    bgEmojis: ['🪟','💨','🌪️','🌿','🌊'],
+    scene: 'You look out of the window. The wind is very strong.',
+    clueText: 'The detective heard the wind outside. It was very loud — like a big angry animal.',
+    senseUsed: 'sounded like',
+    hintStructure: 'It <span class="structure">sounded like</span> _____',
+    hintNote: 'sounded like + a noun (a person or animal)',
+    options: [
+      { text: 'It sounded like a big angry animal.', correct: true },
+      { text: 'It was sounding like an animal.', correct: false },
+      { text: 'It sounded as a big animal.', correct: false },
+      { text: 'It sounded very angry animal.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Brilliant! <em>"It sounded like a big angry animal."</em> — sounded like + noun phrase!',
+      wrong: 'Use: <em>It sounded like + a noun.</em> We don\'t say "sounded as" or "was sounding like".',
+    },
+    summary: { icon: '👂', text: '"It <strong>sounded like</strong> a big angry animal."' }
+  },
+  {
+    emoji: '🌫️',
+    bgEmojis: ['🌿','🌸','🌾','🧴','🏺'],
+    scene: 'The garden. You find a small bottle in the grass.',
+    clueText: 'The detective opened the bottle. It smelled very sweet and fresh — like a pink rose.',
+    senseUsed: 'smelt like',
+    hintStructure: 'It <span class="structure">smelt like</span> _____',
+    hintNote: 'smelt like + a noun (a flower, food, etc.)',
+    options: [
+      { text: 'It smelt like a pink rose.', correct: true },
+      { text: 'It smelt as a pink rose.', correct: false },
+      { text: 'It was smelling like rose.', correct: false },
+      { text: 'It smelt very sweet rose.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Perfect! <em>"It smelt like a pink rose."</em> — smelt like + noun. Well done!',
+      wrong: 'Use: <em>It smelt like + a noun.</em> We don\'t say "smelt as" or "was smelling like".',
+    },
+    summary: { icon: '👃', text: '"It <strong>smelt like</strong> a pink rose."' }
+  },
+  {
+    emoji: '🗝️',
+    bgEmojis: ['🏆','💎','🪙','🎭','🔐'],
+    scene: 'The last room! You find something important on the table.',
+    clueText: 'The detective picked up a small key. It was old and dirty — like a coin from a hundred years ago.',
+    senseUsed: 'looked like',
+    hintStructure: 'It <span class="structure">looked like</span> _____',
+    hintNote: 'looked like + a noun (a thing)',
+    options: [
+      { text: 'It looked like an old coin.', correct: true },
+      { text: 'It was looking like coin.', correct: false },
+      { text: 'It looked as an old coin.', correct: false },
+      { text: 'It looked very old coin.', correct: false },
+    ],
+    feedback: {
+      correct: '✔ Amazing! <em>"It looked like an old coin."</em> — looked like + noun. Case closed! 🎉',
+      wrong: 'Use: <em>It looked like + a noun.</em> We don\'t say "looked as" or "was looking like".',
+    },
+    summary: { icon: '👀', text: '"It <strong>looked like</strong> an old coin."' }
+  },
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let results = [];
+
+function init() {
+  current = 0; score = 0; answered = false; results = [];
+  renderDots();
+  showClue();
+  document.getElementById('game-area').style.display = 'block';
+  document.getElementById('final-screen').style.display = 'none';
+  document.getElementById('final-screen').classList.remove('show');
+  document.getElementById('teacher-note').style.display = 'block';
+}
+
+function renderDots() {
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  clues.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i < current ? ' solved' : i === current ? ' active' : '');
+    d.appendChild(dot);
+  });
+}
+
+function showClue() {
+  const c = clues[current];
+  answered = false;
+
+  // Update progress
+  document.getElementById('progress-label').textContent = `Clue ${current + 1} of ${clues.length}`;
+  updateScore();
+
+  // Scene
+  document.getElementById('main-emoji').textContent = c.emoji;
+  const bg = document.getElementById('scene-bg');
+  bg.innerHTML = c.bgEmojis.map(e => `<span>${e}</span>`).join(' ');
+
+  // Texts
+  document.getElementById('clue-text').innerHTML = c.clueText;
+  document.getElementById('hint-content').innerHTML =
+    `Say: <span class="structure">${c.hintStructure}</span> &nbsp;<small style="opacity:0.7">— ${c.hintNote}</small>`;
+
+  // Options — shuffle so correct answer isn't always first
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  const shuffled = [...c.options].sort(() => Math.random() - 0.5);
+  shuffled.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}.</span> ${opt.text}`;
+    btn.onclick = () => selectOption(i, opt.correct, shuffled);
+    grid.appendChild(btn);
+  });
+
+  // Reset feedback & next
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  fb.style.display = 'none';
+  document.getElementById('btn-next').className = 'btn-next';
+  document.getElementById('btn-next').textContent = current < clues.length - 1 ? 'Next Clue →' : 'Reveal Case →';
+}
+
+function selectOption(idx, isCorrect, shuffled) {
+  if (answered) return;
+  answered = true;
+
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (shuffled[i].correct) btn.classList.add('correct');
+    else if (i === idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  const c = clues[current];
+
+  if (isCorrect) {
+    score++;
+    fb.className = 'feedback success show';
+    fb.style.display = 'block';
+    document.getElementById('feedback-title').textContent = '✔ Correct!';
+    document.getElementById('feedback-body').innerHTML = c.feedback.correct;
+    results.push({ ...c.summary, correct: true });
+  } else {
+    fb.className = 'feedback error show';
+    fb.style.display = 'block';
+    document.getElementById('feedback-title').textContent = '✘ Not quite...';
+    document.getElementById('feedback-body').innerHTML = c.feedback.wrong;
+    results.push({ ...c.summary, correct: false });
+  }
+
+  document.getElementById('btn-next').classList.add('show');
+  updateScore();
+}
+
+function nextClue() {
+  current++;
+  if (current >= clues.length) {
+    showFinal();
+  } else {
+    renderDots();
+    showClue();
+  }
+}
+
+function showFinal() {
+  document.getElementById('game-area').style.display = 'none';
+  document.getElementById('teacher-note').style.display = 'none';
+  const fs = document.getElementById('final-screen');
+  fs.classList.add('show');
+
+  const pct = Math.round((score / clues.length) * 100);
+
+  // Medal & stamp
+  const medal = document.getElementById('final-medal');
+  const stamp = document.getElementById('verdict-stamp');
+  if (pct === 100) {
+    medal.textContent = '🏆';
+    stamp.textContent = 'CASE CLOSED!';
+    stamp.style.color = '#2d7a1e';
+    stamp.style.borderColor = '#2d7a1e';
+  } else if (pct >= 60) {
+    medal.textContent = '🥈';
+    stamp.textContent = 'GOOD WORK!';
+    stamp.style.color = '#b8860b';
+    stamp.style.borderColor = '#b8860b';
+  } else {
+    medal.textContent = '🔍';
+    stamp.textContent = 'KEEP TRYING!';
+  }
+
+  // Congratulations text
+  const titles = {
+    100: 'Congratulations, Detective!',
+    good: 'Well done, Detective!',
+    low: 'Good try, Detective!'
+  };
+  const subs = {
+    100: '🎉 You solved all 10 clues! Amazing work!',
+    good: '👍 You finished the quest! Practice the tricky ones again.',
+    low: '💪 You finished the quest! Try again to get a better score.'
+  };
+
+  const key = pct === 100 ? 100 : pct >= 60 ? 'good' : 'low';
+  document.getElementById('final-title').textContent = titles[key];
+  document.getElementById('final-subtitle').textContent = subs[key];
+  document.getElementById('final-score-text').textContent = `Score: ${score} / ${clues.length}`;
+
+  // Summary list
+  const list = document.getElementById('summary-list');
+  list.innerHTML = results.map((r) => `
+    <div class="summary-item">
+      <span class="summary-sense">${r.icon}</span>
+      <span class="summary-sentence">${r.text} ${r.correct ? '✔' : '✘'}</span>
+    </div>
+  `).join('');
+
+  window.scrollTo(0, 0);
+}
+
+function updateScore() {
+  document.getElementById('score-area').textContent = `Score: ${score} / ${current + (answered ? 1 : 0)}`;
+}
+
+function restart() {
+  window.scrollTo(0, 0);
+  document.getElementById('final-screen').classList.remove('show');
+  document.getElementById('final-screen').style.display = 'none';
+  document.getElementById('teacher-note').style.display = 'block';
+  init();
+}
+
+init();
+</script>
+
+</body>
+</html>
